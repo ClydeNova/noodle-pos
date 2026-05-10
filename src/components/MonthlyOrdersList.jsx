@@ -21,19 +21,38 @@ export function MonthlyOrdersList({ orders }) {
       <div className="max-h-96 overflow-y-auto pr-1">
         {orders.length ? (
           <div className="space-y-2">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr] items-center gap-3 rounded-2xl border border-white/10 bg-[#0F1115] px-4 py-3 text-sm"
-              >
-                <span className="font-medium text-zinc-200">{order.date}</span>
-                <span className="text-zinc-400">{order.time}</span>
-                <span className="font-semibold text-[#C6A96B]">
-                  {formatCurrency(order.total)}
-                </span>
-                <span className="text-right text-zinc-500">{countItems(order)} 件</span>
-              </div>
-            ))}
+            {orders.map((order) => {
+              const isCancelled = order.status === "cancelled";
+
+              return (
+                <div
+                  key={order.id}
+                  className="grid grid-cols-[1.2fr_1fr_1fr_0.8fr_0.8fr] items-center gap-3 rounded-2xl border border-white/10 bg-[#0F1115] px-4 py-3 text-sm"
+                >
+                  <span className="font-medium text-zinc-200">{order.date}</span>
+                  <span className="text-zinc-400">{order.time}</span>
+                  <span
+                    className={
+                      isCancelled
+                        ? "font-semibold text-zinc-500 line-through"
+                        : "font-semibold text-[#C6A96B]"
+                    }
+                  >
+                    {formatCurrency(order.total)}
+                  </span>
+                  <span className="text-right text-zinc-500">{countItems(order)} 件</span>
+                  <span
+                    className={
+                      isCancelled
+                        ? "text-right font-semibold text-red-300"
+                        : "text-right text-zinc-500"
+                    }
+                  >
+                    {isCancelled ? "已取消" : "完成"}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="flex h-40 items-center justify-center rounded-2xl border border-white/10 bg-[#0F1115] text-zinc-600">

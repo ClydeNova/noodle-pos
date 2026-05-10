@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
 export const SALES_STORAGE_KEY = "sales";
+export const ORDERS_STORAGE_KEY = "orders";
 
 const pad = (value) => String(value).padStart(2, "0");
 
@@ -9,13 +10,13 @@ const getLocalTimestampParts = (date = new Date()) => ({
   time: `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 });
 
-export const readSales = () => {
+const readArray = (key) => {
   if (typeof window === "undefined") {
     return [];
   }
 
   try {
-    const stored = window.localStorage.getItem(SALES_STORAGE_KEY);
+    const stored = window.localStorage.getItem(key);
     const parsed = stored ? JSON.parse(stored) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -23,12 +24,19 @@ export const readSales = () => {
   }
 };
 
-const writeSales = (sales) => {
-  window.localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(sales));
+const writeArray = (key, records) => {
+  window.localStorage.setItem(key, JSON.stringify(records));
 };
+
+export const readSales = () => readArray(SALES_STORAGE_KEY);
+export const readOrders = () => readArray(ORDERS_STORAGE_KEY);
 
 export function useSales() {
   const [sales, setSales] = useState(readSales);
+  const [orders, setOrders] = useState(() => {
+    const storedOrders = readOrders();
+    return storedOrders.length ? storedOrders : readSales();
+  });
 
   const recordSale = useCallback((order) => {
     const now = new Date();
@@ -39,26 +47,71 @@ export function useSales() {
       total: order.total,
       createdAt: now.toISOString(),
       date,
-      time
+      time,
+      status: "completed"
     };
 
     setSales((currentSales) => {
       const nextSales = [...currentSales, sale];
-      writeSales(nextSales);
+      writeArray(SALES_STORAGE_KEY, nextSales);
       return nextSales;
+    });
+
+    setOrders((currentOrders) => {
+      const nextOrders = [...currentOrders, sale];
+      writeArray(ORDERS_STORAGE_KEY, nextOrders);
+      return nextOrders;
     });
 
     return sale;
   }, []);
 
+  const cancelSale = useCallback((saleId) => {
+    const cancelledAt = new Date().toISOString();
+    let cancelledOrder = null;
+
+    const markCancelled = (records) =>
+      records.map((record) => {
+        if (record.id !== saleId || record.status === "cancelled") {
+          return record;
+        }
+
+        cancelledOrder = {
+          ...record,
+          status: "cancelled",
+          cancelledAt
+        };
+
+        return cancelledOrder;
+      });
+
+    setSales((currentSales) => {
+      const nextSales = markCancelled(currentSales);
+      writeArray(SALES_STORAGE_KEY, nextSales);
+      return nextSales;
+    });
+
+    setOrders((currentOrders) => {
+      const nextOrders = markCancelled(currentOrders);
+      writeArray(ORDERS_STORAGE_KEY, nextOrders);
+      return nextOrders;
+    });
+
+    return cancelledOrder;
+  }, []);
+
   const resetSales = useCallback(() => {
     window.localStorage.removeItem(SALES_STORAGE_KEY);
+    window.localStorage.removeItem(ORDERS_STORAGE_KEY);
     setSales([]);
+    setOrders([]);
   }, []);
 
   return {
     sales,
+    orders,
     recordSale,
+    cancelSale,
     resetSales
   };
 }

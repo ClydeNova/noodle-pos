@@ -33,11 +33,12 @@ const getSaleTime = (sale) => {
   return `${hours}:${minutes}:${seconds}`;
 };
 
-const normalizeOrderTimestamps = (sales) =>
-  sales.map((sale) => ({
-    ...sale,
-    date: getSaleDate(sale),
-    time: getSaleTime(sale)
+const normalizeOrderTimestamps = (records) =>
+  records.map((record) => ({
+    ...record,
+    date: getSaleDate(record),
+    time: getSaleTime(record),
+    status: record.status || "completed"
   }));
 
 const toValidCreatedAt = (sale) => {
@@ -76,35 +77,47 @@ const isWithinLastThirtyDays = (date, referenceDate) => {
   return date >= start && date <= end;
 };
 
-const filterSalesByDate = (sales, predicate) =>
-  sales.filter((sale) => {
-    const createdAt = toValidCreatedAt(sale);
+const filterRecordsByDate = (records, predicate) =>
+  records.filter((record) => {
+    const createdAt = toValidCreatedAt(record);
     return createdAt ? predicate(createdAt) : false;
   });
 
-const newestFirst = (sales) =>
-  [...sales].sort((a, b) => {
+const newestFirst = (records) =>
+  [...records].sort((a, b) => {
     const aTime = toValidCreatedAt(a)?.getTime() || 0;
     const bTime = toValidCreatedAt(b)?.getTime() || 0;
     return bTime - aTime;
   });
 
+const isActiveSale = (sale) => sale.status !== "cancelled";
+
 export const getTodaySales = (sales, referenceDate = new Date()) =>
-  filterSalesByDate(sales, (createdAt) => isSameLocalDay(createdAt, referenceDate));
+  filterRecordsByDate(sales.filter(isActiveSale), (createdAt) =>
+    isSameLocalDay(createdAt, referenceDate)
+  );
 
 export const getWeeklySales = (sales, referenceDate = new Date()) =>
-  filterSalesByDate(sales, (createdAt) => isWithinLastSevenDays(createdAt, referenceDate));
+  filterRecordsByDate(sales.filter(isActiveSale), (createdAt) =>
+    isWithinLastSevenDays(createdAt, referenceDate)
+  );
 
 export const getMonthlySales = (sales, referenceDate = new Date()) =>
-  filterSalesByDate(sales, (createdAt) => isCurrentMonth(createdAt, referenceDate));
+  filterRecordsByDate(sales.filter(isActiveSale), (createdAt) =>
+    isCurrentMonth(createdAt, referenceDate)
+  );
 
-export const getTodayOrders = (sales, referenceDate = new Date()) =>
-  normalizeOrderTimestamps(newestFirst(getTodaySales(sales, referenceDate)));
-
-export const getMonthlyOrders = (sales, referenceDate = new Date()) =>
+export const getTodayOrders = (orders, referenceDate = new Date()) =>
   normalizeOrderTimestamps(
     newestFirst(
-      filterSalesByDate(sales, (createdAt) =>
+      filterRecordsByDate(orders, (createdAt) => isSameLocalDay(createdAt, referenceDate))
+    )
+  );
+
+export const getMonthlyOrders = (orders, referenceDate = new Date()) =>
+  normalizeOrderTimestamps(
+    newestFirst(
+      filterRecordsByDate(orders, (createdAt) =>
         isWithinLastThirtyDays(createdAt, referenceDate)
       )
     )
@@ -115,7 +128,7 @@ const sumSales = (sales) => sales.reduce((sum, sale) => sum + Number(sale.total 
 const buildDailyRevenue = (sales) => {
   const revenueByDate = new Map();
 
-  sales.forEach((sale) => {
+  sales.filter(isActiveSale).forEach((sale) => {
     const date = getSaleDate(sale);
 
     if (!date) {
@@ -133,7 +146,7 @@ const buildDailyRevenue = (sales) => {
 const buildProductDistribution = (sales) => {
   const quantityByProduct = new Map();
 
-  sales.forEach((sale) => {
+  sales.filter(isActiveSale).forEach((sale) => {
     sale.items?.forEach((lineItem) => {
       if (lineItem.type === "combo" && Array.isArray(lineItem.items)) {
         lineItem.items.forEach((comboItem) => {
@@ -164,13 +177,14 @@ const buildProductDistribution = (sales) => {
     }));
 };
 
-export function useAnalytics(sales) {
+export function useAnalytics(sales, orders = sales) {
   return useMemo(() => {
     const todaySales = getTodaySales(sales);
     const weeklySales = getWeeklySales(sales);
     const monthlySales = getMonthlySales(sales);
-    const todayOrders = getTodayOrders(sales);
-    const monthlyOrders = getMonthlyOrders(sales);
+    const orderRecords = orders.length ? orders : sales;
+    const todayOrders = getTodayOrders(orderRecords);
+    const monthlyOrders = getMonthlyOrders(orderRecords);
 
     return {
       todaySales,
@@ -184,5 +198,5 @@ export function useAnalytics(sales) {
       dailyRevenue: buildDailyRevenue(sales),
       productDistribution: buildProductDistribution(sales)
     };
-  }, [sales]);
+  }, [sales, orders]);
 }

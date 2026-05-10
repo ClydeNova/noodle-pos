@@ -33,6 +33,9 @@ export function OrderPanel({ items, total, itemCount, onRemoveOne, onCheckout })
                       {item.name}
                     </p>
                     <div className="mt-1 space-y-1">
+                      {item.sauce ? (
+                        <p className="text-sm text-[#C6A96B]">{item.sauce.name}</p>
+                      ) : null}
                       {item.type === "combo" ? (
                         <p className="truncate text-sm text-zinc-400">
                           {item.items.map((component) => component.name).join(" + ")}

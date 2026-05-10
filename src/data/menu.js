@@ -13,14 +13,16 @@ export const singleItems = [
     name: "標準涼麵",
     price: 60,
     category: "noodles",
-    type: "single"
+    type: "single",
+    needsSauce: true
   },
   {
     id: "deluxe_cold_noodle",
     name: "大滿足涼麵",
     price: 75,
     category: "noodles",
-    type: "single"
+    type: "single",
+    needsSauce: true
   },
   {
     id: "mung_bean_smoothie",
@@ -48,3 +50,9 @@ export const singleItems = [
 export const menuItems = [...singleItems, ...comboItems];
 
 export const menuById = Object.fromEntries(menuItems.map((item) => [item.id, item]));
+
+export const productRequiresSauce = (product) =>
+  Boolean(
+    product?.needsSauce ||
+      product?.items?.some((item) => menuById[item.id]?.needsSauce)
+  );

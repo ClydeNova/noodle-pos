@@ -3,26 +3,31 @@ import { menuById } from "../data/menu.js";
 
 export const ORDER_STORAGE_KEY = "order";
 
-const createOrderLine = (product, qty = 1) => ({
-  id: product.id,
+const getLineId = (product, options = {}) =>
+  options.sauce ? `${product.id}:${options.sauce.id}` : product.id;
+
+const createOrderLine = (product, qty = 1, options = {}) => ({
+  id: getLineId(product, options),
+  productId: product.id,
   name: product.name,
   price: product.price,
   qty,
   type: product.type,
-  ...(product.items ? { items: product.items } : {})
+  ...(product.items ? { items: product.items } : {}),
+  ...(options.sauce ? { sauce: options.sauce } : {})
 });
 
 const normalizeStoredOrder = (storedItems) =>
   storedItems
     .map((item) => {
-      const product = menuById[item.id];
+      const product = menuById[item.productId || item.id?.split(":")[0] || item.id];
       const qty = Number(item.qty ?? item.quantity ?? 0);
 
       if (!product || !Number.isFinite(qty) || qty <= 0) {
         return null;
       }
 
-      return createOrderLine(product, qty);
+      return createOrderLine(product, qty, { sauce: item.sauce });
     })
     .filter(Boolean);
 
@@ -47,24 +52,25 @@ export function useOrder() {
     window.localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(orderItems));
   }, [orderItems]);
 
-  const addItem = useCallback((product) => {
+  const addItem = useCallback((product, options = {}) => {
     setOrderItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.id === product.id);
+      const lineId = getLineId(product, options);
+      const existingItem = currentItems.find((item) => item.id === lineId);
 
       if (existingItem) {
         return currentItems.map((item) =>
-          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+          item.id === lineId ? { ...item, qty: item.qty + 1 } : item
         );
       }
 
-      return [...currentItems, createOrderLine(product)];
+      return [...currentItems, createOrderLine(product, 1, options)];
     });
   }, []);
 
-  const removeOne = useCallback((productId) => {
+  const removeOne = useCallback((lineId) => {
     setOrderItems((currentItems) =>
       currentItems
-        .map((item) => (item.id === productId ? { ...item, qty: item.qty - 1 } : item))
+        .map((item) => (item.id === lineId ? { ...item, qty: item.qty - 1 } : item))
         .filter((item) => item.qty > 0)
     );
   }, []);

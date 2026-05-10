@@ -6,8 +6,8 @@ export const comboItems = [
     category: "sets",
     type: "combo",
     items: [
-      { name: "標準涼麵", qty: 1 },
-      { name: "綠豆冰沙", qty: 1 }
+      { id: "standard_cold_noodle", name: "標準涼麵", qty: 1 },
+      { id: "mung_bean_smoothie", name: "綠豆冰沙", qty: 1 }
     ]
   },
   {
@@ -17,8 +17,8 @@ export const comboItems = [
     category: "sets",
     type: "combo",
     items: [
-      { name: "標準涼麵", qty: 1 },
-      { name: "嚴選紅茶", qty: 1 }
+      { id: "standard_cold_noodle", name: "標準涼麵", qty: 1 },
+      { id: "premium_black_tea", name: "嚴選紅茶", qty: 1 }
     ]
   },
   {
@@ -28,8 +28,8 @@ export const comboItems = [
     category: "sets",
     type: "combo",
     items: [
-      { name: "標準涼麵", qty: 1 },
-      { name: "味噌湯", qty: 1 }
+      { id: "standard_cold_noodle", name: "標準涼麵", qty: 1 },
+      { id: "miso_soup", name: "味噌湯", qty: 1 }
     ]
   }
 ];

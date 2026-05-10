@@ -1,3 +1,9 @@
+const tabs = [
+  { id: "pos", label: "POS" },
+  { id: "analytics", label: "報表" },
+  { id: "inventory", label: "庫存管理" }
+];
+
 export function Layout({ activeView, onViewChange, children, contentClassName = "" }) {
   const buttonClass = (view) =>
     [
@@ -20,20 +26,16 @@ export function Layout({ activeView, onViewChange, children, contentClassName = 
         </div>
 
         <div className="flex rounded-full border border-white/10 bg-[#0F1115]/80 p-1 shadow-inner shadow-black/40">
-          <button
-            type="button"
-            className={buttonClass("pos")}
-            onClick={() => onViewChange("pos")}
-          >
-            POS
-          </button>
-          <button
-            type="button"
-            className={buttonClass("analytics")}
-            onClick={() => onViewChange("analytics")}
-          >
-            報表
-          </button>
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={buttonClass(tab.id)}
+              onClick={() => onViewChange(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </header>
 
