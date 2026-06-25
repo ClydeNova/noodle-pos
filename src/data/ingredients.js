@@ -22,12 +22,22 @@ export const ingredients = [
   {
     id: "black_tea",
     name: "紅茶",
-    unit: "cc"
+    unit: "杯"
+  },
+  {
+    id: "winter_melon_tea",
+    name: "冬瓜茶",
+    unit: "杯"
   },
   {
     id: "mung_bean",
-    name: "綠豆湯",
+    name: "綠豆冰沙",
     unit: "cc"
+  },
+  {
+    id: "miso_soup",
+    name: "味噌湯",
+    unit: "碗"
   }
 ];
 
@@ -47,9 +57,15 @@ export const productInventoryUsage = {
     sauce: 1
   },
   premium_black_tea: {
-    black_tea: 700
+    black_tea: 1
+  },
+  winter_melon_tea: {
+    winter_melon_tea: 1
   },
   mung_bean_smoothie: {
     mung_bean: 700
+  },
+  miso_soup: {
+    miso_soup: 1
   }
 };

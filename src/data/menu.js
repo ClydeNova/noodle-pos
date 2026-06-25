@@ -32,6 +32,13 @@ export const singleItems = [
     type: "single"
   },
   {
+    id: "winter_melon_tea",
+    name: "冬瓜茶",
+    price: 30,
+    category: "drinks",
+    type: "single"
+  },
+  {
     id: "mung_bean_smoothie",
     name: "綠豆冰沙",
     price: 50,

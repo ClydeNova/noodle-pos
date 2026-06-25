@@ -1,5 +1,6 @@
 import React from "react";
 import { AnalyticsPanel } from "./components/AnalyticsPanel.jsx";
+import { ComboCustomizationModal } from "./components/ComboCustomizationModal.jsx";
 import { InventoryPanel } from "./components/InventoryPanel.jsx";
 import { Layout } from "./components/Layout.jsx";
 import { OrderPanel } from "./components/OrderPanel.jsx";
@@ -23,11 +24,14 @@ const formatShortage = (shortage) =>
 export default function App() {
   const [activeView, setActiveView] = React.useState("pos");
   const [pendingSauceProduct, setPendingSauceProduct] = React.useState(null);
+  const [pendingComboProduct, setPendingComboProduct] = React.useState(null);
   const { orderItems, total, itemCount, addItem, removeOne, clearOrder } = useOrder();
   const { sales, orders, recordSale, cancelSale, resetSales } = useSales();
   const {
     inventoryList,
+    inventoryHistory,
     addStock,
+    adjustStock,
     setSafeStock,
     deductInventory,
     restoreInventory
@@ -36,6 +40,11 @@ export default function App() {
   const { reserveInventory, syncOrder, recordDailySale } = usePosIntegrations();
 
   const handleAddProduct = (product) => {
+    if (product.type === "combo") {
+      setPendingComboProduct(product);
+      return;
+    }
+
     if (productRequiresSauce(product)) {
       setPendingSauceProduct(product);
       return;
@@ -47,6 +56,11 @@ export default function App() {
   const handleSauceSelected = (sauce) => {
     addItem(pendingSauceProduct, { sauce });
     setPendingSauceProduct(null);
+  };
+
+  const handleComboConfirmed = (options) => {
+    addItem(pendingComboProduct, options);
+    setPendingComboProduct(null);
   };
 
   const handleCheckout = async () => {
@@ -137,7 +151,9 @@ export default function App() {
       {activeView === "inventory" ? (
         <InventoryPanel
           inventoryItems={inventoryList}
+          inventoryHistory={inventoryHistory}
           onAddStock={addStock}
+          onAdjustStock={adjustStock}
           onSetSafeStock={setSafeStock}
         />
       ) : null}
@@ -146,6 +162,11 @@ export default function App() {
         product={pendingSauceProduct}
         onSelect={handleSauceSelected}
         onClose={() => setPendingSauceProduct(null)}
+      />
+      <ComboCustomizationModal
+        product={pendingComboProduct}
+        onConfirm={handleComboConfirmed}
+        onClose={() => setPendingComboProduct(null)}
       />
     </Layout>
   );

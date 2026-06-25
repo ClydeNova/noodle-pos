@@ -3,18 +3,22 @@ import { menuById } from "../data/menu.js";
 
 export const ORDER_STORAGE_KEY = "order";
 
-const getLineId = (product, options = {}) =>
-  options.sauce ? `${product.id}:${options.sauce.id}` : product.id;
+const getLineId = (product, options = {}) => {
+  const saucePart = options.sauce ? `:${options.sauce.id}` : "";
+  const upgradePart = options.upgradeNoodle ? ":large" : "";
+  return `${product.id}${saucePart}${upgradePart}`;
+};
 
 const createOrderLine = (product, qty = 1, options = {}) => ({
   id: getLineId(product, options),
   productId: product.id,
   name: product.name,
-  price: product.price,
+  price: product.price + Number(options.priceAdjustment || 0),
   qty,
   type: product.type,
-  ...(product.items ? { items: product.items } : {}),
-  ...(options.sauce ? { sauce: options.sauce } : {})
+  ...(options.items || product.items ? { items: options.items || product.items } : {}),
+  ...(options.sauce ? { sauce: options.sauce } : {}),
+  ...(options.upgradeNoodle ? { upgradeNoodle: true } : {})
 });
 
 const normalizeStoredOrder = (storedItems) =>
@@ -27,7 +31,15 @@ const normalizeStoredOrder = (storedItems) =>
         return null;
       }
 
-      return createOrderLine(product, qty, { sauce: item.sauce });
+      return {
+        ...createOrderLine(product, qty, {
+          sauce: item.sauce,
+          upgradeNoodle: item.upgradeNoodle,
+          items: item.items,
+          priceAdjustment: item.upgradeNoodle ? 5 : 0
+        }),
+        price: Number(item.price || product.price)
+      };
     })
     .filter(Boolean);
 

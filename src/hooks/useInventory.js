@@ -3,14 +3,22 @@ import { ingredients, productInventoryUsage } from "../data/ingredients.js";
 import { menuById } from "../data/menu.js";
 
 export const INVENTORY_STORAGE_KEY = "inventory";
+export const INVENTORY_HISTORY_STORAGE_KEY = "inventoryHistory";
 
-const readInventory = () => {
+const pad = (value) => String(value).padStart(2, "0");
+
+const getLocalTimestampParts = (date = new Date()) => ({
+  date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+  time: `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+});
+
+const readJsonObject = (key) => {
   if (typeof window === "undefined") {
     return {};
   }
 
   try {
-    const stored = window.localStorage.getItem(INVENTORY_STORAGE_KEY);
+    const stored = window.localStorage.getItem(key);
     const parsed = stored ? JSON.parse(stored) : {};
     return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   } catch {
@@ -18,8 +26,26 @@ const readInventory = () => {
   }
 };
 
+const readJsonArray = (key) => {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const stored = window.localStorage.getItem(key);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 const writeInventory = (inventory) => {
   window.localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory));
+};
+
+const writeHistory = (history) => {
+  window.localStorage.setItem(INVENTORY_HISTORY_STORAGE_KEY, JSON.stringify(history));
 };
 
 const createInventoryRecord = (ingredient, storedRecord = {}) => ({
@@ -35,6 +61,22 @@ const normalizeInventory = (storedInventory) =>
       createInventoryRecord(ingredient, storedInventory[ingredient.id])
     ])
   );
+
+const createHistoryRecord = ({ ingredient, action, quantity, unit }) => {
+  const now = new Date();
+  const { date, time } = getLocalTimestampParts(now);
+
+  return {
+    id: `${now.getTime()}-${ingredient.id}-${Math.random().toString(16).slice(2)}`,
+    date,
+    time,
+    ingredientId: ingredient.id,
+    ingredientName: ingredient.name,
+    action,
+    quantity,
+    unit
+  };
+};
 
 const addUsage = (usage, ingredientId, amount) => {
   if (!ingredientId || !amount) {
@@ -107,13 +149,22 @@ const buildShortages = (inventory, usage) =>
     .filter(Boolean);
 
 export function getInventory() {
-  return normalizeInventory(readInventory());
+  return normalizeInventory(readJsonObject(INVENTORY_STORAGE_KEY));
 }
 
 export function useInventory() {
   const [inventory, setInventory] = useState(getInventory);
+  const [history, setHistory] = useState(() => readJsonArray(INVENTORY_HISTORY_STORAGE_KEY));
 
   const inventoryList = useMemo(() => Object.values(inventory), [inventory]);
+
+  const appendHistory = useCallback((records) => {
+    setHistory((currentHistory) => {
+      const nextHistory = [...records, ...currentHistory].slice(0, 300);
+      writeHistory(nextHistory);
+      return nextHistory;
+    });
+  }, []);
 
   const updateInventoryRecord = useCallback((ingredientId, updater) => {
     setInventory((currentInventory) => {
@@ -130,8 +181,9 @@ export function useInventory() {
 
   const addStock = useCallback((ingredientId, amount) => {
     const quantity = Number(amount);
+    const ingredient = inventory[ingredientId];
 
-    if (!Number.isFinite(quantity) || quantity <= 0) {
+    if (!ingredient || !Number.isFinite(quantity) || quantity <= 0) {
       return;
     }
 
@@ -139,7 +191,39 @@ export function useInventory() {
       ...currentRecord,
       quantity: Number(currentRecord?.quantity || 0) + quantity
     }));
-  }, [updateInventoryRecord]);
+
+    appendHistory([
+      createHistoryRecord({
+        ingredient,
+        action: "入庫",
+        quantity,
+        unit: ingredient.unit
+      })
+    ]);
+  }, [appendHistory, inventory, updateInventoryRecord]);
+
+  const adjustStock = useCallback((ingredientId, amount) => {
+    const quantity = Number(amount);
+    const ingredient = inventory[ingredientId];
+
+    if (!ingredient || !Number.isFinite(quantity) || quantity === 0) {
+      return;
+    }
+
+    updateInventoryRecord(ingredientId, (currentRecord) => ({
+      ...currentRecord,
+      quantity: Math.max(0, Number(currentRecord?.quantity || 0) + quantity)
+    }));
+
+    appendHistory([
+      createHistoryRecord({
+        ingredient,
+        action: "調整",
+        quantity,
+        unit: ingredient.unit
+      })
+    ]);
+  }, [appendHistory, inventory, updateInventoryRecord]);
 
   const setSafeStock = useCallback((ingredientId, amount) => {
     const safeStock = Number(amount);
@@ -167,49 +251,73 @@ export function useInventory() {
     }
 
     const nextInventory = { ...inventory };
+    const records = [];
 
     Object.entries(usage).forEach(([ingredientId, amount]) => {
+      const ingredient = nextInventory[ingredientId];
       nextInventory[ingredientId] = {
-        ...nextInventory[ingredientId],
-        quantity: Number(nextInventory[ingredientId]?.quantity || 0) - amount
+        ...ingredient,
+        quantity: Number(ingredient?.quantity || 0) - amount
       };
+      records.push(
+        createHistoryRecord({
+          ingredient,
+          action: "自動扣庫存",
+          quantity: -amount,
+          unit: ingredient?.unit || ""
+        })
+      );
     });
 
     setInventory(nextInventory);
     writeInventory(nextInventory);
+    appendHistory(records);
 
     return {
       ok: true,
       usage,
       shortages: []
     };
-  }, [inventory]);
+  }, [appendHistory, inventory]);
 
   const restoreInventory = useCallback((orderItems) => {
     const usage = calculateInventoryUsage(orderItems);
     const nextInventory = { ...inventory };
+    const records = [];
 
     Object.entries(usage).forEach(([ingredientId, amount]) => {
+      const ingredient = nextInventory[ingredientId];
       nextInventory[ingredientId] = {
-        ...nextInventory[ingredientId],
-        quantity: Number(nextInventory[ingredientId]?.quantity || 0) + amount
+        ...ingredient,
+        quantity: Number(ingredient?.quantity || 0) + amount
       };
+      records.push(
+        createHistoryRecord({
+          ingredient,
+          action: "取消回補",
+          quantity: amount,
+          unit: ingredient?.unit || ""
+        })
+      );
     });
 
     setInventory(nextInventory);
     writeInventory(nextInventory);
+    appendHistory(records);
 
     return {
       ok: true,
       usage
     };
-  }, [inventory]);
+  }, [appendHistory, inventory]);
 
   return {
     inventory,
     inventoryList,
+    inventoryHistory: history,
     getInventory: () => inventory,
     addStock,
+    adjustStock,
     setSafeStock,
     deductInventory,
     restoreInventory
