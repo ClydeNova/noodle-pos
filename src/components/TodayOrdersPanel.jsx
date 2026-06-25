@@ -5,11 +5,28 @@ const formatCurrency = (value) => `$${Number(value || 0).toLocaleString("en-US")
 const countItems = (order) =>
   order.items?.reduce((sum, item) => sum + Number(item.qty || 0), 0) || 0;
 
-const summarizeItems = (order) =>
-  order.items
-    ?.slice(0, 2)
-    .map((item) => (item.qty > 1 ? `${item.name} x ${item.qty}` : item.name))
-    .join("、") || "";
+function OrderItems({ items }) {
+  return (
+    <div className="space-y-2">
+      {items?.map((item) => (
+        <div key={item.id} className="min-w-0">
+          <p className="truncate font-medium text-zinc-100">
+            {item.name}
+            {item.qty > 1 ? ` x ${item.qty}` : ""}
+          </p>
+          {item.sauce ? (
+            <p className="mt-0.5 text-sm text-[#C6A96B]">{item.sauce.name}</p>
+          ) : null}
+          {item.type === "combo" && Array.isArray(item.items) ? (
+            <p className="mt-0.5 truncate text-sm text-zinc-500">
+              {item.items.map((component) => component.name).join(" + ")}
+            </p>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function OrderDetail({ order, onClose, onCancelOrder }) {
   if (!order) {
@@ -29,7 +46,7 @@ function OrderDetail({ order, onClose, onCancelOrder }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:border-[#C6A96B]/30 hover:bg-white/10"
+            className="min-h-11 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:border-[#C6A96B]/30 hover:bg-white/10"
           >
             關閉
           </button>
@@ -48,22 +65,8 @@ function OrderDetail({ order, onClose, onCancelOrder }) {
               className="rounded-2xl border border-white/10 bg-[#1A1D23] px-4 py-3"
             >
               <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-zinc-100">
-                    {item.name}
-                    {item.sauce ? (
-                      <span className="ml-2 text-sm text-[#C6A96B]">
-                        {item.sauce.name}
-                      </span>
-                    ) : null}
-                  </p>
-                  {item.type === "combo" && Array.isArray(item.items) ? (
-                    <p className="mt-1 truncate text-sm text-zinc-500">
-                      {item.items.map((component) => component.name).join(" + ")}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="text-right">
+                <OrderItems items={[item]} />
+                <div className="shrink-0 text-right">
                   <p className="font-semibold text-zinc-100">x {item.qty}</p>
                   <p className="text-sm text-zinc-500">
                     {formatCurrency(item.price * item.qty)}
@@ -85,7 +88,7 @@ function OrderDetail({ order, onClose, onCancelOrder }) {
           <button
             type="button"
             onClick={() => onCancelOrder(order)}
-            className="mt-5 w-full rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-3 font-semibold text-red-200 transition hover:border-red-300/40 hover:bg-red-500/15 active:scale-[0.98]"
+            className="mt-5 min-h-12 w-full rounded-2xl border border-red-400/20 bg-red-500/10 px-5 py-3 font-semibold text-red-200 transition hover:border-red-300/40 hover:bg-red-500/15 active:scale-[0.98]"
           >
             取消訂單並回補庫存
           </button>
@@ -132,8 +135,21 @@ export function TodayOrdersPanel({ orders, onCancelOrder }) {
                     onClick={() => setSelectedOrder(order)}
                     className="w-full rounded-2xl border border-white/10 bg-[#1A1D23] px-4 py-4 text-left shadow-[0_12px_34px_rgba(0,0,0,0.18)] transition hover:border-[#C6A96B]/30 hover:bg-[#20242C] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/30"
                   >
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="mb-3 flex items-center justify-between gap-3">
                       <span className="font-semibold text-zinc-100">{order.time}</span>
+                      <span
+                        className={
+                          isCancelled
+                            ? "text-sm font-semibold text-red-300"
+                            : "text-sm font-semibold text-[#C6A96B]"
+                        }
+                      >
+                        {isCancelled ? "已取消" : "完成"}
+                      </span>
+                    </div>
+                    <OrderItems items={order.items} />
+                    <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
+                      <span className="text-sm text-zinc-500">{countItems(order)} items</span>
                       <span
                         className={
                           isCancelled
@@ -142,12 +158,6 @@ export function TodayOrdersPanel({ orders, onCancelOrder }) {
                         }
                       >
                         {formatCurrency(order.total)}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between gap-3 text-sm text-zinc-500">
-                      <span>{countItems(order)} items</span>
-                      <span className="truncate">
-                        {isCancelled ? "已取消" : summarizeItems(order)}
                       </span>
                     </div>
                   </button>

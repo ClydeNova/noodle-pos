@@ -54,7 +54,7 @@ export function OrderPanel({ items, total, itemCount, onRemoveOne, onCheckout })
                     <button
                       type="button"
                       onClick={() => onRemoveOne(item.id)}
-                      className="h-12 w-12 rounded-full border border-white/10 bg-[#0F1115] text-lg font-semibold text-zinc-100 transition hover:border-[#C6A96B]/35 hover:bg-[#242832] active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/40"
+                      className="h-14 w-14 rounded-full border border-white/10 bg-[#0F1115] text-lg font-semibold text-zinc-100 transition hover:border-[#C6A96B]/35 hover:bg-[#242832] active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/40"
                       aria-label={`Remove one ${item.name}`}
                     >
                       -1

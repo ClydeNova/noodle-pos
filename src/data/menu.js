@@ -25,16 +25,16 @@ export const singleItems = [
     needsSauce: true
   },
   {
-    id: "mung_bean_smoothie",
-    name: "綠豆冰沙",
-    price: 45,
+    id: "premium_black_tea",
+    name: "經選紅茶",
+    price: 30,
     category: "drinks",
     type: "single"
   },
   {
-    id: "premium_black_tea",
-    name: "嚴選紅茶",
-    price: 30,
+    id: "mung_bean_smoothie",
+    name: "綠豆冰沙",
+    price: 50,
     category: "drinks",
     type: "single"
   },

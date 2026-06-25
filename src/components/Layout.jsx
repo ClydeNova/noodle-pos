@@ -7,7 +7,7 @@ const tabs = [
 export function Layout({ activeView, onViewChange, children, contentClassName = "" }) {
   const buttonClass = (view) =>
     [
-      "h-10 rounded-full px-5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/40",
+      "min-h-11 rounded-full px-5 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/40",
       activeView === view
         ? "bg-[#C6A96B] text-[#0F1115] shadow-[0_0_24px_rgba(198,169,107,0.18)]"
         : "text-zinc-400 hover:bg-white/[0.06] hover:text-zinc-100"

@@ -6,17 +6,17 @@ export const ingredients = [
   },
   {
     id: "sauce_original",
-    name: "原味醬包",
+    name: "經典麻醬醬包",
     unit: "包"
   },
   {
     id: "sauce_spicy",
-    name: "辣味醬包",
+    name: "四川麻辣醬包",
     unit: "包"
   },
   {
-    id: "sauce_sesame",
-    name: "麻醬醬包",
+    id: "sauce_sour",
+    name: "酸辣開胃醬包",
     unit: "包"
   },
   {
@@ -32,9 +32,9 @@ export const ingredients = [
 ];
 
 export const sauceOptions = [
-  { id: "sauce_original", name: "原味" },
-  { id: "sauce_spicy", name: "辣味" },
-  { id: "sauce_sesame", name: "麻醬" }
+  { id: "sauce_original", name: "經典麻醬" },
+  { id: "sauce_spicy", name: "四川麻辣" },
+  { id: "sauce_sour", name: "酸辣開胃" }
 ];
 
 export const productInventoryUsage = {

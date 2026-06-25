@@ -8,7 +8,7 @@ export function ProductButton({ product, onAddItem }) {
     <button
       type="button"
       onClick={() => onAddItem(product)}
-      className="group flex min-h-44 flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-br from-[#20242C] via-[#1A1D23] to-[#111217] p-6 text-left shadow-[0_18px_50px_rgba(0,0,0,0.24)] transition duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:border-[#C6A96B]/35 hover:from-[#252A33] active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/40"
+      className="group flex min-h-48 flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-br from-[#20242C] via-[#1A1D23] to-[#111217] p-6 text-left shadow-[0_18px_50px_rgba(0,0,0,0.24)] transition duration-150 ease-out hover:-translate-y-0.5 hover:scale-[1.01] hover:border-[#C6A96B]/35 hover:from-[#252A33] active:translate-y-0 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/40"
     >
       <div>
         <div className="mb-4 flex items-center justify-between gap-3">

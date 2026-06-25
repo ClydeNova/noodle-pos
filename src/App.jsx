@@ -28,6 +28,7 @@ export default function App() {
   const {
     inventoryList,
     addStock,
+    setSafeStock,
     deductInventory,
     restoreInventory
   } = useInventory();
@@ -134,7 +135,11 @@ export default function App() {
       ) : null}
 
       {activeView === "inventory" ? (
-        <InventoryPanel inventoryItems={inventoryList} onAddStock={addStock} />
+        <InventoryPanel
+          inventoryItems={inventoryList}
+          onAddStock={addStock}
+          onSetSafeStock={setSafeStock}
+        />
       ) : null}
 
       <SauceSelectionModal

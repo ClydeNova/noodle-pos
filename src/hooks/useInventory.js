@@ -22,16 +22,17 @@ const writeInventory = (inventory) => {
   window.localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory));
 };
 
-const createInventoryRecord = (ingredient, quantity = 0) => ({
+const createInventoryRecord = (ingredient, storedRecord = {}) => ({
   ...ingredient,
-  quantity: Number(quantity || 0)
+  quantity: Number(storedRecord.quantity || 0),
+  safeStock: Number(storedRecord.safeStock || 0)
 });
 
 const normalizeInventory = (storedInventory) =>
   Object.fromEntries(
     ingredients.map((ingredient) => [
       ingredient.id,
-      createInventoryRecord(ingredient, storedInventory[ingredient.id]?.quantity)
+      createInventoryRecord(ingredient, storedInventory[ingredient.id])
     ])
   );
 
@@ -114,6 +115,19 @@ export function useInventory() {
 
   const inventoryList = useMemo(() => Object.values(inventory), [inventory]);
 
+  const updateInventoryRecord = useCallback((ingredientId, updater) => {
+    setInventory((currentInventory) => {
+      const currentRecord = currentInventory[ingredientId];
+      const nextInventory = {
+        ...currentInventory,
+        [ingredientId]: updater(currentRecord)
+      };
+
+      writeInventory(nextInventory);
+      return nextInventory;
+    });
+  }, []);
+
   const addStock = useCallback((ingredientId, amount) => {
     const quantity = Number(amount);
 
@@ -121,20 +135,24 @@ export function useInventory() {
       return;
     }
 
-    setInventory((currentInventory) => {
-      const currentRecord = currentInventory[ingredientId];
-      const nextInventory = {
-        ...currentInventory,
-        [ingredientId]: {
-          ...currentRecord,
-          quantity: Number(currentRecord?.quantity || 0) + quantity
-        }
-      };
+    updateInventoryRecord(ingredientId, (currentRecord) => ({
+      ...currentRecord,
+      quantity: Number(currentRecord?.quantity || 0) + quantity
+    }));
+  }, [updateInventoryRecord]);
 
-      writeInventory(nextInventory);
-      return nextInventory;
-    });
-  }, []);
+  const setSafeStock = useCallback((ingredientId, amount) => {
+    const safeStock = Number(amount);
+
+    if (!Number.isFinite(safeStock) || safeStock < 0) {
+      return;
+    }
+
+    updateInventoryRecord(ingredientId, (currentRecord) => ({
+      ...currentRecord,
+      safeStock
+    }));
+  }, [updateInventoryRecord]);
 
   const deductInventory = useCallback((orderItems) => {
     const usage = calculateInventoryUsage(orderItems);
@@ -192,6 +210,7 @@ export function useInventory() {
     inventoryList,
     getInventory: () => inventory,
     addStock,
+    setSafeStock,
     deductInventory,
     restoreInventory
   };

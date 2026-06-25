@@ -22,7 +22,7 @@ export function SauceSelectionModal({ product, onSelect, onClose }) {
               key={sauce.id}
               type="button"
               onClick={() => onSelect(sauce)}
-              className="rounded-2xl border border-white/10 bg-[#1A1D23] px-5 py-5 text-left text-xl font-medium text-zinc-50 transition hover:border-[#C6A96B]/35 hover:bg-[#20242C] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/35"
+              className="min-h-16 rounded-2xl border border-white/10 bg-[#1A1D23] px-5 py-5 text-left text-xl font-medium text-zinc-50 transition hover:border-[#C6A96B]/35 hover:bg-[#20242C] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#C6A96B]/35"
             >
               {sauce.name}
             </button>
@@ -32,7 +32,7 @@ export function SauceSelectionModal({ product, onSelect, onClose }) {
         <button
           type="button"
           onClick={onClose}
-          className="mt-5 w-full rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-zinc-300 transition hover:border-[#C6A96B]/30 hover:bg-white/10"
+          className="mt-5 min-h-12 w-full rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-zinc-300 transition hover:border-[#C6A96B]/30 hover:bg-white/10"
         >
           取消
         </button>
