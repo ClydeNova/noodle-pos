@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { normalizeOrderMode } from "../config/pricing.js";
 
 const localDate = (value = new Date()) => {
   const date = value instanceof Date ? value : new Date(value);
@@ -85,7 +86,7 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
       lowStockCount: inventory.filter((item) => Number(item.safeStock) > 0 && Number(item.quantity) <= Number(item.safeStock)).length,
       dailyRevenue: groupTotals(activeSales, getDate, "total").sort((a, b) => a.name.localeCompare(b.name)).map(({ name, value }) => ({ date: name, revenue: value })),
       productDistribution: productDistribution(sales),
-      modeRevenue: groupTotals(activeSales, (sale) => sale.mode === "wholesale" ? "外送" : "現場", "total"),
+      modeRevenue: groupTotals(activeSales, (sale) => normalizeOrderMode(sale.mode) === "delivery" ? "外送" : "現場", "total"),
       expenseCategories: groupTotals(expenses, (item) => item.category, "amount"),
       expenseTrend: groupTotals(expenses, (item) => item.date, "amount").sort((a, b) => a.name.localeCompare(b.name))
     };

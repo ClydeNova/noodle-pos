@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { DEFAULT_STORE_ID, normalizeOrderMode } from "../config/pricing.js";
 
 export const SALES_STORAGE_KEY = "sales";
 export const ORDERS_STORAGE_KEY = "orders";
@@ -28,8 +29,24 @@ const writeArray = (key, records) => {
   window.localStorage.setItem(key, JSON.stringify(records));
 };
 
-export const readSales = () => readArray(SALES_STORAGE_KEY);
-export const readOrders = () => readArray(ORDERS_STORAGE_KEY);
+const normalizeSaleRecord = (record) => {
+  const items = record.items || record.order?.items || [];
+  const mode = normalizeOrderMode(record.mode || record.order?.mode);
+  const total = Number(record.total ?? record.revenue ?? 0);
+
+  return {
+    ...record,
+    items,
+    total,
+    mode,
+    storeId: record.storeId || DEFAULT_STORE_ID,
+    order: record.order || { items, mode },
+    revenue: Number(record.revenue ?? total)
+  };
+};
+
+export const readSales = () => readArray(SALES_STORAGE_KEY).map(normalizeSaleRecord);
+export const readOrders = () => readArray(ORDERS_STORAGE_KEY).map(normalizeSaleRecord);
 
 export function useSales() {
   const [sales, setSales] = useState(readSales);
@@ -49,7 +66,13 @@ export function useSales() {
       date,
       time,
       status: "completed",
-      mode: order.mode || "retail"
+      mode: normalizeOrderMode(order.mode),
+      storeId: order.storeId || DEFAULT_STORE_ID,
+      order: {
+        items: order.items,
+        mode: normalizeOrderMode(order.mode)
+      },
+      revenue: order.total
     };
 
     setSales((currentSales) => {

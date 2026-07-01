@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { ingredients, productInventoryUsage } from "../data/ingredients.js";
-import { menuById } from "../data/menu.js";
+import { legacyInventoryProductIds } from "../config/inventoryMapping.js";
 
 export const INVENTORY_STORAGE_KEY = "inventory";
 export const INVENTORY_HISTORY_STORAGE_KEY = "inventoryHistory";
@@ -48,17 +48,24 @@ const writeHistory = (history) => {
   window.localStorage.setItem(INVENTORY_HISTORY_STORAGE_KEY, JSON.stringify(history));
 };
 
-const createInventoryRecord = (ingredient, storedRecord = {}) => ({
-  ...ingredient,
-  quantity: Number(storedRecord.quantity || 0),
-  safeStock: Number(storedRecord.safeStock || 0)
-});
+const createInventoryRecord = (ingredient, storedInventory) => {
+  const currentRecord = storedInventory[ingredient.id];
+  const legacyRecord = ingredient.legacyId ? storedInventory[ingredient.legacyId] : null;
+  const storedRecord = currentRecord || legacyRecord || {};
+  const divisor = !currentRecord && legacyRecord ? Number(ingredient.legacyDivisor || 1) : 1;
+
+  return {
+    ...ingredient,
+    quantity: Number(storedRecord.quantity || 0) / divisor,
+    safeStock: Number(storedRecord.safeStock || 0) / divisor
+  };
+};
 
 const normalizeInventory = (storedInventory) =>
   Object.fromEntries(
     ingredients.map((ingredient) => [
       ingredient.id,
-      createInventoryRecord(ingredient, storedInventory[ingredient.id])
+      createInventoryRecord(ingredient, storedInventory)
     ])
   );
 
@@ -87,7 +94,8 @@ const addUsage = (usage, ingredientId, amount) => {
 };
 
 const applyProductUsage = (usage, productId, multiplier, sauce) => {
-  const productUsage = productInventoryUsage[productId];
+  const normalizedProductId = legacyInventoryProductIds[productId] || productId;
+  const productUsage = productInventoryUsage[normalizedProductId];
 
   if (!productUsage) {
     return;
@@ -108,20 +116,6 @@ export const calculateInventoryUsage = (orderItems) => {
 
   orderItems.forEach((lineItem) => {
     const lineQty = Number(lineItem.qty || 0);
-
-    if (lineItem.type === "combo" && Array.isArray(lineItem.items)) {
-      lineItem.items.forEach((comboItem) => {
-        const componentProduct = menuById[comboItem.id];
-        applyProductUsage(
-          usage,
-          comboItem.id,
-          lineQty * Number(comboItem.qty || 1),
-          componentProduct?.needsSauce ? lineItem.sauce : null
-        );
-      });
-      return;
-    }
-
     applyProductUsage(usage, lineItem.productId || lineItem.id, lineQty, lineItem.sauce);
   });
 

@@ -1,9 +1,8 @@
+import { orderModes, normalizeOrderMode, pricing } from "../config/pricing.js";
+import { products } from "../config/products.js";
 import { comboItems } from "./combos.js";
 
-export const ORDER_MODES = {
-  retail: { id: "retail", label: "現場模式", shortLabel: "現場" },
-  wholesale: { id: "wholesale", label: "外送模式", shortLabel: "外送" }
-};
+export const ORDER_MODES = orderModes;
 
 export const menuCategories = [
   { id: "noodles", label: "涼麵" },
@@ -12,50 +11,24 @@ export const menuCategories = [
   { id: "reseller", label: "寄賣批發" }
 ];
 
-export const singleItems = [
-  {
-    id: "standard_cold_noodle",
-    name: "標準涼麵",
-    prices: { retail: 60, wholesale: 75 },
-    category: "noodles",
-    type: "single",
-    needsSauce: true
-  },
-  {
-    id: "mung_bean_smoothie",
-    name: "綠豆冰沙",
-    prices: { retail: 50, wholesale: 65 },
-    category: "drinks",
-    type: "single"
-  },
-  {
-    id: "premium_black_tea",
-    name: "經選紅茶",
-    prices: { retail: 30, wholesale: 40 },
-    category: "drinks",
-    type: "single"
-  },
-  {
-    id: "winter_melon_tea",
-    name: "冬瓜茶",
-    prices: { retail: 30, wholesale: 40 },
-    category: "drinks",
-    type: "single"
-  },
-  {
-    id: "reseller_cold_noodle",
-    name: "涼麵寄賣批發",
-    prices: { retail: 50, wholesale: 50 },
-    category: "reseller",
-    type: "single"
-  }
-];
+export const singleItems = products.map((product) => ({
+  ...product,
+  type: "single",
+  needsSauce: Boolean(product.requiresFlavor)
+}));
 
 export const menuItems = [...singleItems, ...comboItems];
-export const menuById = Object.fromEntries(menuItems.map((item) => [item.id, item]));
 
-export const getProductPrice = (product, mode = "retail") =>
-  Number(product?.prices?.[mode] ?? product?.prices?.retail ?? product?.price ?? 0);
+export const menuById = menuItems.reduce((index, item) => {
+  index[item.id] = item;
+  item.legacyIds?.forEach((legacyId) => { index[legacyId] = item; });
+  return index;
+}, {});
+
+export const getProductPrice = (product, mode = "dineIn") => {
+  const normalizedMode = normalizeOrderMode(mode);
+  return Number(pricing[normalizedMode]?.[product?.pricingKey] || 0);
+};
 
 export const productRequiresSauce = (product) =>
-  Boolean(product?.needsSauce || product?.items?.some((item) => menuById[item.id]?.needsSauce));
+  Boolean(product?.requiresFlavor || product?.items?.some((item) => menuById[item.id]?.requiresFlavor));

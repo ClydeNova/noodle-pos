@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getProductPrice, menuById } from "../data/menu.js";
+import { normalizeOrderMode } from "../config/pricing.js";
 
 export const ORDER_STORAGE_KEY = "order";
 export const ORDER_MODE_STORAGE_KEY = "orderMode";
 
 const readMode = () => {
-  if (typeof window === "undefined") return "retail";
-  return window.localStorage.getItem(ORDER_MODE_STORAGE_KEY) === "wholesale"
-    ? "wholesale"
-    : "retail";
+  if (typeof window === "undefined") return "dineIn";
+  return normalizeOrderMode(window.localStorage.getItem(ORDER_MODE_STORAGE_KEY));
 };
 
 const getLineId = (product, sauce) =>
@@ -50,7 +49,7 @@ export function useOrder() {
   }, [orderItems]);
 
   const setOrderMode = useCallback((mode) => {
-    const nextMode = mode === "wholesale" ? "wholesale" : "retail";
+    const nextMode = normalizeOrderMode(mode);
     setOrderModeState(nextMode);
     window.localStorage.setItem(ORDER_MODE_STORAGE_KEY, nextMode);
     setOrderItems((items) => items.map((item) => {
