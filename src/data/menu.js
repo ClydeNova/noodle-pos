@@ -1,14 +1,15 @@
 import { comboItems } from "./combos.js";
 
 export const ORDER_MODES = {
-  retail: { id: "retail", label: "零售模式", shortLabel: "零售" },
-  wholesale: { id: "wholesale", label: "批發模式", shortLabel: "批發" }
+  retail: { id: "retail", label: "現場模式", shortLabel: "現場" },
+  wholesale: { id: "wholesale", label: "外送模式", shortLabel: "外送" }
 };
 
 export const menuCategories = [
   { id: "noodles", label: "涼麵" },
   { id: "sets", label: "套餐" },
-  { id: "drinks", label: "飲品" }
+  { id: "drinks", label: "飲品" },
+  { id: "reseller", label: "寄賣批發" }
 ];
 
 export const singleItems = [
@@ -39,6 +40,13 @@ export const singleItems = [
     name: "冬瓜茶",
     prices: { retail: 30, wholesale: 40 },
     category: "drinks",
+    type: "single"
+  },
+  {
+    id: "reseller_cold_noodle",
+    name: "涼麵寄賣批發",
+    prices: { retail: 50, wholesale: 50 },
+    category: "reseller",
     type: "single"
   }
 ];

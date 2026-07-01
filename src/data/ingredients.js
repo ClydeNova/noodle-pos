@@ -16,6 +16,7 @@ export const sauceOptions = [
 
 export const productInventoryUsage = {
   standard_cold_noodle: { noodle: 200, sauce: 1 },
+  reseller_cold_noodle: { noodle: 200 },
   premium_black_tea: { black_tea: 1 },
   winter_melon_tea: { winter_melon_tea: 1 },
   mung_bean_smoothie: { mung_bean: 700 }
