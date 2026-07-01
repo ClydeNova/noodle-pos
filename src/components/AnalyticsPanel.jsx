@@ -1,73 +1,20 @@
+import { DashboardCards } from "./DashboardCards.jsx";
 import { MonthlyOrdersList } from "./MonthlyOrdersList.jsx";
 import { DailyRevenueChart } from "./charts/DailyRevenueChart.jsx";
 import { ProductDistributionChart } from "./charts/ProductDistributionChart.jsx";
+import { ExpenseCategoryChart, ExpenseTrendChart, ModeRevenueChart } from "./charts/OperationsCharts.jsx";
 
-const formatCurrency = (value) => `$${Number(value || 0).toLocaleString("en-US")}`;
-
-function RevenueCard({ label, value, detail }) {
-  return (
-    <article className="rounded-2xl border border-white/10 bg-[#1A1D23] p-6 shadow-[0_18px_50px_rgba(0,0,0,0.22)]">
-      <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#C6A96B]/75">
-        {label}
-      </p>
-      <p className="mt-5 text-5xl font-semibold tracking-normal text-zinc-50">
-        {formatCurrency(value)}
-      </p>
-      <p className="mt-4 text-sm font-medium text-zinc-400">{detail}</p>
-    </article>
-  );
-}
+const money = (value) => `$${Number(value || 0).toLocaleString("zh-TW")}`;
 
 export function AnalyticsPanel({ analytics, onResetData }) {
-  return (
-    <section className="mx-auto w-full max-w-7xl pb-8">
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-[#C6A96B]/75">
-            Sales Analytics
-          </p>
-          <h1 className="mt-2 text-4xl font-medium tracking-normal text-zinc-50">
-            營業報表
-          </h1>
-        </div>
-        <button
-          type="button"
-          onClick={onResetData}
-          className="rounded-full border border-red-400/20 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-200 transition hover:border-red-300/40 hover:bg-red-500/15 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-200/30"
-        >
-          清除所有資料
-        </button>
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-3">
-        <RevenueCard
-          label="今日營業額"
-          value={analytics.todayRevenue}
-          detail={`${analytics.todaySales.length} 筆銷售`}
-        />
-        <RevenueCard
-          label="本週營業額"
-          value={analytics.weeklyRevenue}
-          detail="最近 7 天"
-        />
-        <RevenueCard
-          label="本月營業額"
-          value={analytics.monthlyRevenue}
-          detail="本月累計"
-        />
-      </div>
-
-      <div className="mt-6">
-        <DailyRevenueChart data={analytics.dailyRevenue} />
-      </div>
-
-      <div className="mt-6">
-        <ProductDistributionChart data={analytics.productDistribution} />
-      </div>
-
-      <div className="mt-6">
-        <MonthlyOrdersList orders={analytics.monthlyOrders} />
-      </div>
-    </section>
-  );
+  return <section className="mx-auto w-full max-w-7xl pb-8">
+    <div className="mb-6 flex items-start justify-between gap-4"><div><p className="text-sm tracking-[0.2em] text-[#C6A96B]/75">OPERATIONS</p><h1 className="mt-1 text-4xl font-medium">營運統計</h1></div><button type="button" onClick={onResetData} className="min-h-12 rounded-full border border-red-400/20 bg-red-500/10 px-5 font-semibold text-red-200">清除營業資料</button></div>
+    <DashboardCards analytics={analytics} />
+    <div className="mt-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl bg-[#111217] p-5"><p className="text-zinc-400">本週營收</p><p className="mt-2 text-3xl font-semibold">{money(analytics.weeklyRevenue)}</p></div><div className="rounded-2xl bg-[#111217] p-5"><p className="text-zinc-400">本月淨收入</p><p className="mt-2 text-3xl font-semibold">{money(analytics.monthlyNet)}</p></div><div className="rounded-2xl bg-[#111217] p-5"><p className="text-zinc-400">年度支出</p><p className="mt-2 text-3xl font-semibold">{money(analytics.yearlyExpense)}</p></div></div>
+    <div className="mt-6"><DailyRevenueChart data={analytics.dailyRevenue} /></div>
+    <div className="mt-6"><ProductDistributionChart data={analytics.productDistribution} /></div>
+    <div className="mt-6 grid gap-6 lg:grid-cols-2"><ModeRevenueChart data={analytics.modeRevenue}/><ExpenseCategoryChart data={analytics.expenseCategories}/></div>
+    <div className="mt-6"><ExpenseTrendChart data={analytics.expenseTrend}/></div>
+    <div className="mt-6"><MonthlyOrdersList orders={analytics.monthlyOrders}/></div>
+  </section>;
 }

@@ -48,7 +48,8 @@ export function useSales() {
       createdAt: now.toISOString(),
       date,
       time,
-      status: "completed"
+      status: "completed",
+      mode: order.mode || "retail"
     };
 
     setSales((currentSales) => {
