@@ -14,6 +14,8 @@ export const flavorOptions = [
   { id: "sauce_sour", name: "酸辣開胃" }
 ];
 
+export const lossCategories = ["報廢", "試吃", "員工餐", "過期", "損壞", "其他"];
+
 export const inventoryMapping = {
   noodle: { noodle: 200, sauce: 1 },
   greenBean: { greenBean: 1 },

@@ -26,6 +26,9 @@ const filterDate = (records, predicate) => records.filter((record) => {
 });
 const newest = (records) => [...records].sort((a, b) => (validDate(b)?.getTime() || 0) - (validDate(a)?.getTime() || 0));
 
+export const calculateNetIncome = (revenue, expenses, losses) =>
+  Number(revenue || 0) - Number(expenses || 0) - Number(losses || 0);
+
 export const getTodaySales = (sales, ref = new Date()) => filterDate(sales.filter(active), (date) => sameDay(date, ref));
 export const getWeeklySales = (sales, ref = new Date()) => filterDate(sales.filter(active), (date) => inLastDays(date, ref, 7));
 export const getMonthlySales = (sales, ref = new Date()) => filterDate(sales.filter(active), (date) => sameMonth(date, ref));
@@ -54,7 +57,7 @@ const productDistribution = (sales) => {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([name, qty]) => ({ name, qty, percent: total ? Math.round(qty / total * 100) : 0 }));
 };
 
-export function useAnalytics(sales, orders = sales, expenses = [], inventory = []) {
+export function useAnalytics(sales, orders = sales, expenses = [], inventory = [], losses = [], cash = {}) {
   return useMemo(() => {
     const now = new Date();
     const activeSales = sales.filter(active);
@@ -66,10 +69,16 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
       const date = new Date(`${item.date}T00:00:00`); return !Number.isNaN(date.getTime()) && sameMonth(date, now);
     });
     const yearlyExpenses = expenses.filter((item) => String(item.date).startsWith(String(now.getFullYear())));
+    const todayLosses = filterDate(losses, (date) => sameDay(date, now));
+    const weeklyLosses = filterDate(losses, (date) => inLastDays(date, now, 7));
+    const monthlyLosses = filterDate(losses, (date) => sameMonth(date, now));
     const todayRevenue = sum(todaySales);
     const todayExpense = sum(todayExpenses, "amount");
+    const todayLossAmount = sum(todayLosses, "lossAmount");
     const monthlyRevenue = sum(monthlySales);
     const monthlyExpense = sum(monthlyExpenses, "amount");
+    const monthlyLossAmount = sum(monthlyLosses, "lossAmount");
+    const cashHistory = Array.isArray(cash.cashHistory) ? cash.cashHistory : [];
     return {
       todaySales, weeklySales, monthlySales,
       todayOrders: getTodayOrders(orders.length ? orders : sales, now),
@@ -79,16 +88,28 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
       weeklyRevenue: sum(weeklySales),
       monthlyRevenue,
       todayExpense,
-      todayNet: todayRevenue - todayExpense,
+      todayLosses,
+      weeklyLosses,
+      monthlyLosses,
+      todayLossAmount,
+      weeklyLossAmount: sum(weeklyLosses, "lossAmount"),
+      monthlyLossAmount,
+      todayNet: calculateNetIncome(todayRevenue, todayExpense, todayLossAmount),
       monthlyExpense,
-      monthlyNet: monthlyRevenue - monthlyExpense,
+      monthlyNet: calculateNetIncome(monthlyRevenue, monthlyExpense, monthlyLossAmount),
       yearlyExpense: sum(yearlyExpenses, "amount"),
+      currentCash: Number(cash.currentCash || 0),
+      cashInflow: cashHistory.filter((record) => Number(record.amount) > 0).reduce((total, record) => total + Number(record.amount), 0),
+      cashOutflow: Math.abs(cashHistory.filter((record) => Number(record.amount) < 0).reduce((total, record) => total + Number(record.amount), 0)),
       lowStockCount: inventory.filter((item) => Number(item.safeStock) > 0 && Number(item.quantity) <= Number(item.safeStock)).length,
       dailyRevenue: groupTotals(activeSales, getDate, "total").sort((a, b) => a.name.localeCompare(b.name)).map(({ name, value }) => ({ date: name, revenue: value })),
       productDistribution: productDistribution(sales),
       modeRevenue: groupTotals(activeSales, (sale) => normalizeOrderMode(sale.mode) === "delivery" ? "外送" : "現場", "total"),
       expenseCategories: groupTotals(expenses, (item) => item.category, "amount"),
-      expenseTrend: groupTotals(expenses, (item) => item.date, "amount").sort((a, b) => a.name.localeCompare(b.name))
+      expenseTrend: groupTotals(expenses, (item) => item.date, "amount").sort((a, b) => a.name.localeCompare(b.name)),
+      lossDistribution: groupTotals(losses, (item) => `${item.ingredientName} (${item.unit})`, "quantity"),
+      lossTrend: groupTotals(losses, (item) => item.date, "lossAmount").sort((a, b) => a.name.localeCompare(b.name)),
+      cashTrend: [...cashHistory].reverse().map((record) => ({ name: `${record.date} ${record.time?.slice(0, 5)}`, value: Number(record.balance || 0) }))
     };
-  }, [sales, orders, expenses, inventory]);
+  }, [sales, orders, expenses, inventory, losses, cash]);
 }

@@ -67,6 +67,7 @@ export function useSales() {
       time,
       status: "completed",
       mode: normalizeOrderMode(order.mode),
+      paymentMethod: order.paymentMethod || "cash",
       storeId: order.storeId || DEFAULT_STORE_ID,
       order: {
         items: order.items,

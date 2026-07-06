@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { ingredients, productInventoryUsage } from "../data/ingredients.js";
 import { legacyInventoryProductIds } from "../config/inventoryMapping.js";
+import { DEFAULT_STORE_ID } from "../config/pricing.js";
 
 export const INVENTORY_STORAGE_KEY = "inventory";
 export const INVENTORY_HISTORY_STORAGE_KEY = "inventoryHistory";
+export const INVENTORY_LOSSES_STORAGE_KEY = "inventoryLosses";
 
 const pad = (value) => String(value).padStart(2, "0");
 
@@ -69,7 +71,7 @@ const normalizeInventory = (storedInventory) =>
     ])
   );
 
-const createHistoryRecord = ({ ingredient, action, quantity, unit }) => {
+const createHistoryRecord = ({ ingredient, action, quantity, unit, reason = "", note = "", lossAmount = 0 }) => {
   const now = new Date();
   const { date, time } = getLocalTimestampParts(now);
 
@@ -81,7 +83,10 @@ const createHistoryRecord = ({ ingredient, action, quantity, unit }) => {
     ingredientName: ingredient.name,
     action,
     quantity,
-    unit
+    unit,
+    reason,
+    note,
+    lossAmount: Number(lossAmount || 0)
   };
 };
 
@@ -149,6 +154,7 @@ export function getInventory() {
 export function useInventory() {
   const [inventory, setInventory] = useState(getInventory);
   const [history, setHistory] = useState(() => readJsonArray(INVENTORY_HISTORY_STORAGE_KEY));
+  const [losses, setLosses] = useState(() => readJsonArray(INVENTORY_LOSSES_STORAGE_KEY));
 
   const inventoryList = useMemo(() => Object.values(inventory), [inventory]);
 
@@ -305,15 +311,67 @@ export function useInventory() {
     };
   }, [appendHistory, inventory]);
 
+  const recordLoss = useCallback((input) => {
+    const ingredient = inventory[input.ingredientId];
+    const quantity = Number(input.quantity);
+    const lossAmount = Number(input.lossAmount || 0);
+
+    if (!ingredient || !Number.isFinite(quantity) || quantity <= 0 || !input.reason) {
+      return { ok: false, reason: "invalid" };
+    }
+    if (Number(ingredient.quantity || 0) < quantity) {
+      return { ok: false, reason: "insufficient", available: Number(ingredient.quantity || 0), unit: ingredient.unit };
+    }
+
+    const now = new Date();
+    const { date, time } = getLocalTimestampParts(now);
+    const loss = {
+      id: `${now.getTime()}-${Math.random().toString(16).slice(2)}`,
+      storeId: input.storeId || DEFAULT_STORE_ID,
+      createdAt: now.toISOString(),
+      date,
+      time,
+      ingredientId: ingredient.id,
+      ingredientName: ingredient.name,
+      quantity,
+      unit: ingredient.unit,
+      reason: input.reason,
+      note: input.note?.trim() || "",
+      lossAmount: Number.isFinite(lossAmount) && lossAmount >= 0 ? lossAmount : 0
+    };
+
+    updateInventoryRecord(ingredient.id, (record) => ({
+      ...record,
+      quantity: Number(record.quantity || 0) - quantity
+    }));
+    appendHistory([createHistoryRecord({
+      ingredient,
+      action: "損耗",
+      quantity: -quantity,
+      unit: ingredient.unit,
+      reason: loss.reason,
+      note: loss.note,
+      lossAmount: loss.lossAmount
+    })]);
+    setLosses((records) => {
+      const next = [loss, ...records].slice(0, 1000);
+      window.localStorage.setItem(INVENTORY_LOSSES_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+    return { ok: true, loss };
+  }, [appendHistory, inventory, updateInventoryRecord]);
+
   return {
     inventory,
     inventoryList,
     inventoryHistory: history,
+    inventoryLosses: losses,
     getInventory: () => inventory,
     addStock,
     adjustStock,
     setSafeStock,
     deductInventory,
-    restoreInventory
+    restoreInventory,
+    recordLoss
   };
 }
