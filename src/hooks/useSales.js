@@ -33,14 +33,16 @@ const normalizeSaleRecord = (record) => {
   const items = record.items || record.order?.items || [];
   const mode = normalizeOrderMode(record.mode || record.order?.mode);
   const total = Number(record.total ?? record.revenue ?? 0);
+  const paymentMethod = record.paymentMethod === "bank" || record.paymentMethod === "transfer" ? "bank" : "cash";
 
   return {
     ...record,
     items,
     total,
     mode,
+    paymentMethod,
     storeId: record.storeId || DEFAULT_STORE_ID,
-    order: record.order || { items, mode },
+    order: record.order || { items, mode, paymentMethod },
     revenue: Number(record.revenue ?? total)
   };
 };
@@ -71,7 +73,8 @@ export function useSales() {
       storeId: order.storeId || DEFAULT_STORE_ID,
       order: {
         items: order.items,
-        mode: normalizeOrderMode(order.mode)
+        mode: normalizeOrderMode(order.mode),
+        paymentMethod: order.paymentMethod || "cash"
       },
       revenue: order.total
     };

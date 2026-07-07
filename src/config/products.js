@@ -40,6 +40,6 @@ export const products = [
     name: "涼麵寄賣批發",
     unit: "份",
     category: "reseller",
-    requiresFlavor: false
+    requiresFlavor: true
   }
 ];

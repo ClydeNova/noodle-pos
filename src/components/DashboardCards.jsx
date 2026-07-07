@@ -6,7 +6,9 @@ export function DashboardCards({ analytics }) {
     ["今日營收", money(analytics.todayRevenue)],
     ["今日支出", money(analytics.todayExpense)],
     ["今日淨收入", money(analytics.todayNet)],
-    ["店內流動資金", money(analytics.currentCash)],
+    ["店內現金", money(analytics.cashBalance)],
+    ["銀行戶頭", money(analytics.bankBalance)],
+    ["總資金", money(analytics.totalFunds)],
     ["本週營收", money(analytics.weeklyRevenue)],
     ["本月營收", money(analytics.monthlyRevenue)],
     ["庫存警告", `${analytics.lowStockCount} 項`]

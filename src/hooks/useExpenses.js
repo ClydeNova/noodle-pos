@@ -4,9 +4,13 @@ import { DEFAULT_STORE_ID } from "../config/pricing.js";
 export const EXPENSES_STORAGE_KEY = "expenses";
 export const expenseCategories = ["食材", "租金", "水電", "人事", "設備", "雜支", "其他"];
 export const expensePaymentMethods = [
-  { id: "cashFloat", label: "店內流動資金" },
+  { id: "cash", label: "店內現金" },
+  { id: "bank", label: "銀行戶頭" },
   { id: "other", label: "其他" }
 ];
+
+export const normalizeExpensePaymentMethod = (method) =>
+  method === "cash" || method === "cashFloat" ? "cash" : method === "bank" ? "bank" : "other";
 
 const readExpenses = () => {
   if (typeof window === "undefined") return [];
@@ -15,7 +19,7 @@ const readExpenses = () => {
     return Array.isArray(value) ? value.map((record) => ({
       ...record,
       storeId: record.storeId || DEFAULT_STORE_ID,
-      paymentMethod: record.paymentMethod || "other"
+      paymentMethod: normalizeExpensePaymentMethod(record.paymentMethod)
     })) : [];
   } catch {
     return [];
@@ -38,7 +42,7 @@ export function useExpenses() {
       category: input.category,
       item: input.item.trim(),
       amount,
-      paymentMethod: input.paymentMethod || "other",
+      paymentMethod: normalizeExpensePaymentMethod(input.paymentMethod),
       note: input.note?.trim() || "",
       createdAt: new Date().toISOString()
     };
@@ -59,7 +63,7 @@ export function useExpenses() {
           ...record,
           ...input,
           amount: Number(input.amount),
-          paymentMethod: input.paymentMethod || "other",
+          paymentMethod: normalizeExpensePaymentMethod(input.paymentMethod),
           item: input.item.trim(),
           note: input.note?.trim() || ""
         };

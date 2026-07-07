@@ -57,7 +57,7 @@ const productDistribution = (sales) => {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([name, qty]) => ({ name, qty, percent: total ? Math.round(qty / total * 100) : 0 }));
 };
 
-export function useAnalytics(sales, orders = sales, expenses = [], inventory = [], losses = [], cash = {}) {
+export function useAnalytics(sales, orders = sales, expenses = [], inventory = [], losses = [], funds = {}) {
   return useMemo(() => {
     const now = new Date();
     const activeSales = sales.filter(active);
@@ -78,7 +78,11 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
     const monthlyRevenue = sum(monthlySales);
     const monthlyExpense = sum(monthlyExpenses, "amount");
     const monthlyLossAmount = sum(monthlyLosses, "lossAmount");
-    const cashHistory = Array.isArray(cash.cashHistory) ? cash.cashHistory : [];
+    const fundHistory = Array.isArray(funds.fundHistory) ? funds.fundHistory : [];
+    const externalFundHistory = fundHistory.filter((record) => !String(record.type).includes("轉出") && !String(record.type).includes("轉入"));
+    const cashRevenue = sum(todaySales.filter((sale) => sale.paymentMethod !== "bank"));
+    const bankRevenue = sum(todaySales.filter((sale) => sale.paymentMethod === "bank"));
+    const runningBalances = { cash: 0, bank: 0 };
     return {
       todaySales, weeklySales, monthlySales,
       todayOrders: getTodayOrders(orders.length ? orders : sales, now),
@@ -98,9 +102,14 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
       monthlyExpense,
       monthlyNet: calculateNetIncome(monthlyRevenue, monthlyExpense, monthlyLossAmount),
       yearlyExpense: sum(yearlyExpenses, "amount"),
-      currentCash: Number(cash.currentCash || 0),
-      cashInflow: cashHistory.filter((record) => Number(record.amount) > 0).reduce((total, record) => total + Number(record.amount), 0),
-      cashOutflow: Math.abs(cashHistory.filter((record) => Number(record.amount) < 0).reduce((total, record) => total + Number(record.amount), 0)),
+      todayCashRevenue: cashRevenue,
+      todayBankRevenue: bankRevenue,
+      todayTotalIncome: cashRevenue + bankRevenue,
+      cashBalance: Number(funds.accounts?.cash || 0),
+      bankBalance: Number(funds.accounts?.bank || 0),
+      totalFunds: Number(funds.totalFunds || 0),
+      cashInflow: externalFundHistory.filter((record) => Number(record.amount) > 0).reduce((total, record) => total + Number(record.amount), 0),
+      cashOutflow: Math.abs(externalFundHistory.filter((record) => Number(record.amount) < 0).reduce((total, record) => total + Number(record.amount), 0)),
       lowStockCount: inventory.filter((item) => Number(item.safeStock) > 0 && Number(item.quantity) <= Number(item.safeStock)).length,
       dailyRevenue: groupTotals(activeSales, getDate, "total").sort((a, b) => a.name.localeCompare(b.name)).map(({ name, value }) => ({ date: name, revenue: value })),
       productDistribution: productDistribution(sales),
@@ -109,7 +118,10 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
       expenseTrend: groupTotals(expenses, (item) => item.date, "amount").sort((a, b) => a.name.localeCompare(b.name)),
       lossDistribution: groupTotals(losses, (item) => `${item.ingredientName} (${item.unit})`, "quantity"),
       lossTrend: groupTotals(losses, (item) => item.date, "lossAmount").sort((a, b) => a.name.localeCompare(b.name)),
-      cashTrend: [...cashHistory].reverse().map((record) => ({ name: `${record.date} ${record.time?.slice(0, 5)}`, value: Number(record.balance || 0) }))
+      cashTrend: [...fundHistory].reverse().map((record) => {
+        runningBalances[record.accountId === "bank" ? "bank" : "cash"] = Number(record.balance || 0);
+        return { name: `${record.date} ${record.time?.slice(0, 5)}`, cash: runningBalances.cash, bank: runningBalances.bank };
+      })
     };
-  }, [sales, orders, expenses, inventory, losses, cash]);
+  }, [sales, orders, expenses, inventory, losses, funds]);
 }

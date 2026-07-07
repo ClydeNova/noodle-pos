@@ -22,7 +22,7 @@ export function MonthlyOrdersList({ orders }) {
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead className="sticky top-0 bg-[#1A1D23] text-zinc-400">
             <tr>
-              {["日期", "時間", "模式", "商品", "口味", "金額", "狀態"].map((label) => (
+              {["日期", "時間", "模式", "商品", "口味", "付款", "金額", "狀態"].map((label) => (
                 <th key={label} className="px-4 py-3 font-medium">{label}</th>
               ))}
             </tr>
@@ -37,6 +37,7 @@ export function MonthlyOrdersList({ orders }) {
                   <td className="px-4 py-3">{modeLabel(sale.mode)}</td>
                   <td className="max-w-64 px-4 py-3">{summarizeProducts(sale)}</td>
                   <td className="px-4 py-3 text-[#C6A96B]">{summarizeFlavors(sale)}</td>
+                  <td className="px-4 py-3">{sale.paymentMethod === "bank" ? "匯款" : "現金"}</td>
                   <td className={`px-4 py-3 font-semibold ${cancelled ? "text-zinc-500 line-through" : "text-[#C6A96B]"}`}>{money(sale.total)}</td>
                   <td className={`px-4 py-3 ${cancelled ? "text-red-300" : "text-zinc-400"}`}>{cancelled ? "已取消" : "已完成"}</td>
                 </tr>

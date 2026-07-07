@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { expenseCategories, expensePaymentMethods } from "../hooks/useExpenses.js";
-import { CashPanel } from "./CashPanel.jsx";
+import { FundPanel } from "./FundPanel.jsx";
 
 const today = () => { const date = new Date(); return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; };
-const emptyForm = () => ({ date: today(), category: expenseCategories[0], item: "", amount: "", paymentMethod: "cashFloat", note: "" });
+const emptyForm = () => ({ date: today(), category: expenseCategories[0], item: "", amount: "", paymentMethod: "cash", note: "" });
 const paymentLabel = (method) => expensePaymentMethods.find((item) => item.id === method)?.label || "其他";
 
-export function ExpensePanel({ expenses, onAdd, onUpdate, onDelete, cash }) {
+export function ExpensePanel({ expenses, onAdd, onUpdate, onDelete, funds }) {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const change = (field, value) => setForm((current) => ({ ...current, [field]: value }));
@@ -27,7 +27,7 @@ export function ExpensePanel({ expenses, onAdd, onUpdate, onDelete, cash }) {
   return (
     <section className="mx-auto w-full max-w-7xl pb-8">
       <div className="mb-6"><p className="text-sm tracking-[.2em] text-[#C6A96B]/75">EXPENSES</p><h1 className="mt-1 text-4xl font-medium">支出管理</h1></div>
-      <CashPanel currentCash={cash.currentCash} history={cash.cashHistory} onInitialize={cash.initializeCash} />
+      <FundPanel funds={funds} />
       <form onSubmit={submit} className="mt-5 grid gap-3 rounded-2xl border border-white/10 bg-[#1A1D23] p-5 md:grid-cols-2 xl:grid-cols-6">
         <input type="date" value={form.date} onChange={(e)=>change("date",e.target.value)} className="min-h-14 rounded-xl border border-white/10 bg-[#0F1115] px-4" />
         <select value={form.category} onChange={(e)=>change("category",e.target.value)} className="min-h-14 rounded-xl border border-white/10 bg-[#0F1115] px-4">{expenseCategories.map((category)=><option key={category}>{category}</option>)}</select>
