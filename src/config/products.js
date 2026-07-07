@@ -1,10 +1,12 @@
+import { inventoryConfig } from "./inventoryConfig.js";
+
 export const products = [
   {
     id: "noodle",
     legacyIds: ["standard_cold_noodle"],
     pricingKey: "noodle",
     name: "標準涼麵",
-    size: 200,
+    size: inventoryConfig.noodleServingWeight,
     unit: "G",
     category: "noodles",
     requiresFlavor: true

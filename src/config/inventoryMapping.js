@@ -1,3 +1,7 @@
+import { inventoryConfig } from "./inventoryConfig.js";
+
+const noodleServingWeight = inventoryConfig.noodleServingWeight;
+
 export const inventoryIngredients = [
   { id: "noodle", name: "麵體", unit: "G" },
   { id: "sauce_original", name: "麻醬", unit: "包" },
@@ -18,14 +22,14 @@ export const flavorOptions = [
 export const lossCategories = ["報廢", "試吃", "員工餐", "過期", "損壞", "其他"];
 
 export const inventoryMapping = {
-  noodle: { noodle: 200, sauce: 1, garlicWater: 1 },
+  noodle: { noodle: noodleServingWeight, sauce: 1, garlicWater: 1 },
   greenBean: { greenBean: 1 },
   blackTea: { blackTea: 1 },
   winterMelon: { winterMelon: 1 },
-  wholesale: { noodle: 200, sauce: 1, garlicWater: 1 },
-  signatureCombo: { noodle: 200, sauce: 1, garlicWater: 1, greenBean: 1 },
-  classicComboA: { noodle: 200, sauce: 1, garlicWater: 1, blackTea: 1 },
-  classicComboB: { noodle: 200, sauce: 1, garlicWater: 1, winterMelon: 1 }
+  wholesale: { noodle: noodleServingWeight, sauce: 1, garlicWater: 1 },
+  signatureCombo: { noodle: noodleServingWeight, sauce: 1, garlicWater: 1, greenBean: 1 },
+  classicComboA: { noodle: noodleServingWeight, sauce: 1, garlicWater: 1, blackTea: 1 },
+  classicComboB: { noodle: noodleServingWeight, sauce: 1, garlicWater: 1, winterMelon: 1 }
 };
 
 export const legacyInventoryProductIds = {

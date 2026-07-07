@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { normalizeOrderMode } from "../config/pricing.js";
+import { calculateNoodleServings } from "../config/inventoryConfig.js";
 
 const localDate = (value = new Date()) => {
   const date = value instanceof Date ? value : new Date(value);
@@ -83,6 +84,7 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
     const cashRevenue = sum(todaySales.filter((sale) => sale.paymentMethod !== "bank"));
     const bankRevenue = sum(todaySales.filter((sale) => sale.paymentMethod === "bank"));
     const runningBalances = { cash: 0, bank: 0 };
+    const noodleInventory = inventory.find((item) => item.id === "noodle");
     return {
       todaySales, weeklySales, monthlySales,
       todayOrders: getTodayOrders(orders.length ? orders : sales, now),
@@ -111,6 +113,11 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
       cashInflow: externalFundHistory.filter((record) => Number(record.amount) > 0).reduce((total, record) => total + Number(record.amount), 0),
       cashOutflow: Math.abs(externalFundHistory.filter((record) => Number(record.amount) < 0).reduce((total, record) => total + Number(record.amount), 0)),
       lowStockCount: inventory.filter((item) => Number(item.safeStock) > 0 && Number(item.quantity) <= Number(item.safeStock)).length,
+      noodleInventory: {
+        quantity: Number(noodleInventory?.quantity || 0),
+        unit: noodleInventory?.unit || "G",
+        servings: calculateNoodleServings(noodleInventory?.quantity)
+      },
       dailyRevenue: groupTotals(activeSales, getDate, "total").sort((a, b) => a.name.localeCompare(b.name)).map(({ name, value }) => ({ date: name, revenue: value })),
       productDistribution: productDistribution(sales),
       modeRevenue: groupTotals(activeSales, (sale) => normalizeOrderMode(sale.mode) === "delivery" ? "外送" : "現場", "total"),
