@@ -1,4 +1,4 @@
-import { inventoryConfig } from "./inventoryConfig.js";
+import { NOODLE_PORTION_GRAMS } from "./inventoryConfig.js";
 
 export const products = [
   {
@@ -6,7 +6,7 @@ export const products = [
     legacyIds: ["standard_cold_noodle"],
     pricingKey: "noodle",
     name: "標準涼麵",
-    size: inventoryConfig.noodleServingWeight,
+    size: NOODLE_PORTION_GRAMS,
     unit: "G",
     category: "noodles",
     requiresFlavor: true

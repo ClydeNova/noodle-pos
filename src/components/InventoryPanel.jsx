@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { calculateNoodleServings, inventoryConfig } from "../config/inventoryConfig.js";
+import { calculateNoodleServings, NOODLE_PORTION_GRAMS } from "../config/inventoryConfig.js";
 import { lossCategories } from "../config/inventoryMapping.js";
 
 const number = (value) => Number(value || 0).toLocaleString("zh-TW");
@@ -14,7 +14,7 @@ function StockValue({ label, value, unit, isNoodle, accent = false }) {
       </p>
       {isNoodle ? (
         <div className="mt-2 text-sm font-medium text-[#C6A96B]">
-          <p>每份 {inventoryConfig.noodleServingWeight}G</p>
+          <p>每份 {NOODLE_PORTION_GRAMS}G</p>
           <p>約可製作 {calculateNoodleServings(value)}份</p>
         </div>
       ) : null}
@@ -88,7 +88,7 @@ export function InventoryPanel({ inventoryItems, inventoryHistory, onAddStock, o
                 <StockValue label="安全庫存" value={item.safeStock} unit={item.unit} isNoodle={isNoodle} accent />
               </div>
               <div className="mt-4 flex gap-2"><input type="number" min="0" value={stock[item.id] || ""} onChange={(event) => setStock((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`入庫數量 ${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => { onAddStock(item.id, stock[item.id]); setStock((values) => ({ ...values, [item.id]: "" })); }} className="min-h-14 rounded-xl bg-[#C6A96B] px-4 font-semibold text-[#0F1115]">入庫</button></div>
-              <div className="mt-3 flex gap-2"><input type="number" value={adjust[item.id] || ""} onChange={(event) => setAdjust((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`調整，例如 -200 ${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => submitAdjust(item)} className="min-h-14 rounded-xl border border-[#C6A96B]/30 px-4 font-semibold text-[#C6A96B]">調整</button></div>
+              <div className="mt-3 flex gap-2"><input type="number" value={adjust[item.id] || ""} onChange={(event) => setAdjust((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`調整數量（可輸入負數）${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => submitAdjust(item)} className="min-h-14 rounded-xl border border-[#C6A96B]/30 px-4 font-semibold text-[#C6A96B]">調整</button></div>
               <div className="mt-3 flex gap-2"><input type="number" min="0" value={safe[item.id] || ""} onChange={(event) => setSafe((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`安全庫存 ${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => { onSetSafeStock(item.id, safe[item.id]); setSafe((values) => ({ ...values, [item.id]: "" })); }} className="min-h-14 rounded-xl border border-white/10 px-4">設定</button></div>
             </article>
           );

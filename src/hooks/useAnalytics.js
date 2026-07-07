@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { normalizeOrderMode } from "../config/pricing.js";
-import { calculateNoodleServings, inventoryConfig } from "../config/inventoryConfig.js";
+import { calculateNoodleServings, NOODLE_PORTION_GRAMS } from "../config/inventoryConfig.js";
 
 const localDate = (value = new Date()) => {
   const date = value instanceof Date ? value : new Date(value);
@@ -116,7 +116,7 @@ export function useAnalytics(sales, orders = sales, expenses = [], inventory = [
       noodleInventory: {
         quantity: Number(noodleInventory?.quantity || 0),
         unit: noodleInventory?.unit || "G",
-        servingWeight: inventoryConfig.noodleServingWeight,
+        servingWeight: NOODLE_PORTION_GRAMS,
         servings: calculateNoodleServings(noodleInventory?.quantity)
       },
       dailyRevenue: groupTotals(activeSales, getDate, "total").sort((a, b) => a.name.localeCompare(b.name)).map(({ name, value }) => ({ date: name, revenue: value })),
