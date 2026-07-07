@@ -103,7 +103,7 @@ export default function App() {
       <TodayOrdersPanel orders={analytics.todayOrders} onCancelOrder={cancelOrder}/>
     </div> : null}
     {activeView === "expenses" ? <ExpensePanel expenses={expenseState.expenses} onAdd={addExpense} onUpdate={updateExpense} onDelete={deleteExpense} funds={funds}/> : null}
-    {activeView === "analytics" ? <AnalyticsPanel analytics={analytics} onResetData={resetData}/> : null}
+    {activeView === "analytics" ? <AnalyticsPanel analytics={analytics} activeMode={order.orderMode} onResetData={resetData}/> : null}
     {activeView === "inventory" ? <InventoryPanel inventoryItems={inventory.inventoryList} inventoryHistory={inventory.inventoryHistory} onAddStock={inventory.addStock} onAdjustStock={inventory.adjustStock} onSetSafeStock={inventory.setSafeStock} onRecordLoss={inventory.recordLoss}/> : null}
     <SauceSelectionModal product={pendingProduct} onSelect={selectSauce} onClose={() => setPendingProduct(null)}/>
   </Layout>;

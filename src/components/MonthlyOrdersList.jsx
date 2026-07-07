@@ -8,8 +8,7 @@ const summarizeFlavors = (order) => {
   return flavors.length ? flavors.join("、") : "-";
 };
 
-const modeLabel = (mode) =>
-  mode === "delivery" || mode === "wholesale" ? "外送" : "現場";
+const isDelivery = (mode) => mode === "delivery" || mode === "wholesale";
 
 export function MonthlyOrdersList({ orders }) {
   return (
@@ -34,12 +33,12 @@ export function MonthlyOrdersList({ orders }) {
                 <tr key={sale.id} className="border-t border-white/10 align-top">
                   <td className="px-4 py-3">{sale.date}</td>
                   <td className="px-4 py-3 text-zinc-400">{sale.time}</td>
-                  <td className="px-4 py-3">{modeLabel(sale.mode)}</td>
+                  <td className="px-4 py-3"><span className={`rounded-full border px-2 py-1 text-xs font-medium ${isDelivery(sale.mode) ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-400" : "border-[#C6A96B]/30 bg-[#C6A96B]/10 text-[#C6A96B]"}`}>{isDelivery(sale.mode) ? "外送" : "現場"}</span></td>
                   <td className="max-w-64 px-4 py-3">{summarizeProducts(sale)}</td>
-                  <td className="px-4 py-3 text-[#C6A96B]">{summarizeFlavors(sale)}</td>
+                  <td className={`px-4 py-3 ${isDelivery(sale.mode) ? "text-emerald-400" : "text-[#C6A96B]"}`}>{summarizeFlavors(sale)}</td>
                   <td className="px-4 py-3">{sale.paymentMethod === "bank" ? "匯款" : "現金"}</td>
-                  <td className={`px-4 py-3 font-semibold ${cancelled ? "text-zinc-500 line-through" : "text-[#C6A96B]"}`}>{money(sale.total)}</td>
-                  <td className={`px-4 py-3 ${cancelled ? "text-red-300" : "text-zinc-400"}`}>{cancelled ? "已取消" : "已完成"}</td>
+                  <td className={`px-4 py-3 font-semibold ${cancelled ? "text-zinc-500 line-through" : isDelivery(sale.mode) ? "text-emerald-400" : "text-[#C6A96B]"}`}>{money(sale.total)}</td>
+                  <td className={`px-4 py-3 ${cancelled ? "text-red-400" : "text-zinc-400"}`}>{cancelled ? "已取消" : "已完成"}</td>
                 </tr>
               );
             })}

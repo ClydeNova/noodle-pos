@@ -59,14 +59,14 @@ export function InventoryPanel({ inventoryItems, inventoryHistory, onAddStock, o
       </div>
 
       <article className="mb-6 rounded-2xl border border-red-400/15 bg-[#1A1D23] p-5 shadow-lg">
-        <div><p className="text-sm tracking-[.18em] text-red-300/75">INVENTORY LOSS</p><h2 className="mt-1 text-2xl font-medium">損耗</h2></div>
+        <div><p className="text-sm tracking-[.18em] text-red-400/75">INVENTORY LOSS</p><h2 className="mt-1 text-2xl font-medium">損耗</h2></div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <select value={loss.ingredientId} onChange={(event) => setLoss((value) => ({ ...value, ingredientId: event.target.value }))} className="min-h-14 rounded-xl border border-white/10 bg-[#0F1115] px-4">{inventoryItems.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.unit})</option>)}</select>
           <input type="number" min="0" inputMode="decimal" value={loss.quantity} onChange={(event) => setLoss((value) => ({ ...value, quantity: event.target.value }))} placeholder="損耗數量" className="min-h-14 rounded-xl bg-[#0F1115] px-4" />
           <select value={loss.reason} onChange={(event) => setLoss((value) => ({ ...value, reason: event.target.value }))} className="min-h-14 rounded-xl border border-white/10 bg-[#0F1115] px-4">{lossCategories.map((reason) => <option key={reason}>{reason}</option>)}</select>
           <input value={loss.note} onChange={(event) => setLoss((value) => ({ ...value, note: event.target.value }))} placeholder="備註" className="min-h-14 rounded-xl bg-[#0F1115] px-4" />
           <input type="number" min="0" inputMode="decimal" value={loss.lossAmount} onChange={(event) => setLoss((value) => ({ ...value, lossAmount: event.target.value }))} placeholder="損耗金額（選填）" className="min-h-14 rounded-xl bg-[#0F1115] px-4" />
-          <button type="button" onClick={submitLoss} className="min-h-14 rounded-xl bg-red-300 px-5 font-semibold text-[#0F1115]">確認損耗</button>
+          <button type="button" onClick={submitLoss} className="min-h-14 rounded-xl bg-red-400 px-5 font-semibold text-[#0F1115]">確認損耗</button>
         </div>
       </article>
 
@@ -78,7 +78,7 @@ export function InventoryPanel({ inventoryItems, inventoryHistory, onAddStock, o
             <article key={item.id} className={`rounded-2xl border bg-[#1A1D23] p-5 shadow-lg ${isLow ? "border-red-400/30" : "border-white/10"}`}>
               <div className="flex items-start justify-between gap-3">
                 <div><p className="text-sm text-[#C6A96B]">{item.unit}</p><h2 className="mt-1 text-2xl font-medium">{item.name}</h2></div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isLow ? "bg-red-500/10 text-red-300" : "bg-emerald-500/10 text-emerald-300"}`}>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isLow ? "bg-red-500/10 text-red-400" : "bg-emerald-500/10 text-emerald-400"}`}>
                   {isLow ? "⚠️ 庫存不足" : "正常"}
                 </span>
               </div>
@@ -87,7 +87,7 @@ export function InventoryPanel({ inventoryItems, inventoryHistory, onAddStock, o
                 <StockValue label="安全庫存" value={item.safeStock} unit={item.unit} isNoodle={isNoodle} accent />
               </div>
               <div className="mt-4 flex gap-2"><input type="number" min="0" value={stock[item.id] || ""} onChange={(event) => setStock((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`入庫數量 ${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => { onAddStock(item.id, stock[item.id]); setStock((values) => ({ ...values, [item.id]: "" })); }} className="min-h-14 rounded-xl bg-[#C6A96B] px-4 font-semibold text-[#0F1115]">入庫</button></div>
-              <div className="mt-3 flex gap-2"><input type="number" value={adjust[item.id] || ""} onChange={(event) => setAdjust((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`調整，例如 -300 ${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => submitAdjust(item)} className="min-h-14 rounded-xl border border-[#C6A96B]/30 px-4 font-semibold text-[#C6A96B]">調整</button></div>
+              <div className="mt-3 flex gap-2"><input type="number" value={adjust[item.id] || ""} onChange={(event) => setAdjust((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`調整，例如 -200 ${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => submitAdjust(item)} className="min-h-14 rounded-xl border border-[#C6A96B]/30 px-4 font-semibold text-[#C6A96B]">調整</button></div>
               <div className="mt-3 flex gap-2"><input type="number" min="0" value={safe[item.id] || ""} onChange={(event) => setSafe((values) => ({ ...values, [item.id]: event.target.value }))} placeholder={`安全庫存 ${item.unit}`} className="min-h-14 min-w-0 flex-1 rounded-xl bg-[#0F1115] px-3" /><button type="button" onClick={() => { onSetSafeStock(item.id, safe[item.id]); setSafe((values) => ({ ...values, [item.id]: "" })); }} className="min-h-14 rounded-xl border border-white/10 px-4">設定</button></div>
             </article>
           );
@@ -97,7 +97,7 @@ export function InventoryPanel({ inventoryItems, inventoryHistory, onAddStock, o
       <article className="mt-6 rounded-2xl border border-white/10 bg-[#1A1D23] p-5">
         <h2 className="text-2xl font-medium">庫存歷史</h2>
         <div className="mt-4 max-h-96 overflow-auto">
-          <table className="w-full min-w-[900px] text-left text-sm"><thead className="sticky top-0 bg-[#1A1D23] text-zinc-400"><tr>{["日期", "時間", "品項", "操作", "數量", "原因", "備註"].map((label) => <th key={label} className="px-4 py-3 font-medium">{label}</th>)}</tr></thead><tbody>{inventoryHistory.map((record) => <tr key={record.id} className="border-t border-white/10"><td className="px-4 py-3">{record.date}</td><td className="px-4 py-3 text-zinc-400">{record.time}</td><td className="px-4 py-3">{record.ingredientName}</td><td className="px-4 py-3">{record.action}</td><td className={`px-4 py-3 font-semibold ${Number(record.quantity) < 0 ? "text-red-300" : "text-[#C6A96B]"}`}>{signed(record.quantity, record.unit)}</td><td className="px-4 py-3">{record.reason || "-"}</td><td className="px-4 py-3 text-zinc-400">{record.note || "-"}</td></tr>)}</tbody></table>
+          <table className="w-full min-w-[900px] text-left text-sm"><thead className="sticky top-0 bg-[#1A1D23] text-zinc-400"><tr>{["日期", "時間", "品項", "操作", "數量", "原因", "備註"].map((label) => <th key={label} className="px-4 py-3 font-medium">{label}</th>)}</tr></thead><tbody>{inventoryHistory.map((record) => <tr key={record.id} className="border-t border-white/10"><td className="px-4 py-3">{record.date}</td><td className="px-4 py-3 text-zinc-400">{record.time}</td><td className="px-4 py-3">{record.ingredientName}</td><td className="px-4 py-3">{record.action}</td><td className={`px-4 py-3 font-semibold ${Number(record.quantity) < 0 ? "text-red-400" : "text-[#C6A96B]"}`}>{signed(record.quantity, record.unit)}</td><td className="px-4 py-3">{record.reason || "-"}</td><td className="px-4 py-3 text-zinc-400">{record.note || "-"}</td></tr>)}</tbody></table>
           {!inventoryHistory.length ? <div className="p-10 text-center text-zinc-500">尚無庫存異動</div> : null}
         </div>
       </article>

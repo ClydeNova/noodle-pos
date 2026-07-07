@@ -160,7 +160,7 @@ export function useInventory() {
 
   const appendHistory = useCallback((records) => {
     setHistory((currentHistory) => {
-      const nextHistory = [...records, ...currentHistory].slice(0, 300);
+      const nextHistory = [...records, ...currentHistory].slice(0, 500);
       writeHistory(nextHistory);
       return nextHistory;
     });
