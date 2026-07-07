@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { calculateNoodleServings } from "../config/inventoryConfig.js";
+import { calculateNoodleServings, inventoryConfig } from "../config/inventoryConfig.js";
 import { lossCategories } from "../config/inventoryMapping.js";
 
 const number = (value) => Number(value || 0).toLocaleString("zh-TW");
@@ -13,9 +13,10 @@ function StockValue({ label, value, unit, isNoodle, accent = false }) {
         {number(value)} <small className="text-sm text-zinc-500">{unit}</small>
       </p>
       {isNoodle ? (
-        <p className="mt-2 text-sm font-medium text-[#C6A96B]">
-          約可製作 {calculateNoodleServings(value)}份
-        </p>
+        <div className="mt-2 text-sm font-medium text-[#C6A96B]">
+          <p>每份 {inventoryConfig.noodleServingWeight}G</p>
+          <p>約可製作 {calculateNoodleServings(value)}份</p>
+        </div>
       ) : null}
     </div>
   );

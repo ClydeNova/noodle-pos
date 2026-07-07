@@ -12,7 +12,7 @@ export function DashboardCards({ analytics }) {
     ["本週營收", money(analytics.weeklyRevenue)],
     ["本月營收", money(analytics.monthlyRevenue)],
     ["庫存警告", `${analytics.lowStockCount} 項`],
-    ["麵體", `${Number(analytics.noodleInventory?.quantity || 0).toLocaleString("zh-TW")} ${analytics.noodleInventory?.unit || "G"} · ≈${analytics.noodleInventory?.servings || 0}份`]
+    [`麵體（每份 ${analytics.noodleInventory?.servingWeight || 0}G）`, `${Number(analytics.noodleInventory?.quantity || 0).toLocaleString("zh-TW")} ${analytics.noodleInventory?.unit || "G"} · ≈${analytics.noodleInventory?.servings || 0}份`]
   ];
 
   return (
